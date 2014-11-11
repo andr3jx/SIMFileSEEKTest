@@ -33,6 +33,7 @@ import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 
 /**
@@ -44,7 +45,7 @@ import java.util.NoSuchElementException;
 public class RilExtender extends IRilExtender.Stub {
     private static final String TAG = "RilExtender";
     private static final String DESCRIPTOR = IRilExtender.class.getName();
-    public static final int VERSION = 2;
+    public static final int VERSION = 4;
 
     public static boolean onPhoneServiceTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
         //Log.d(TAG, "onTransact " + code + " " + android.os.Process.myPid());
@@ -217,6 +218,15 @@ public class RilExtender extends IRilExtender.Stub {
         // Adapted from frameworks/opt/telephony/src/java/com/android/internal/telephony/DebugService.java
         try {
             Object phoneProxy = Class.forName("com.android.internal.telephony.PhoneFactory").getMethod("getDefaultPhone").invoke(null);
+            Log.d(TAG, "phoneProxy class "+phoneProxy.getClass());
+            for (Field f : phoneProxy.getClass().getDeclaredFields()) {
+                f.setAccessible(true);
+                Log.d(TAG, f.toString()+" = "+f.get(phoneProxy).toString());
+            }
+            for (Method m : phoneProxy.getClass().getDeclaredMethods()) {
+                Log.d(TAG, m.toString());
+            }
+            Log.d(TAG, "/phoneProxy");
             Object gsmPhone = phoneProxy.getClass().getMethod("getActivePhone").invoke(phoneProxy);
             return gsmPhone;
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
